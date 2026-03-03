@@ -1,18 +1,16 @@
 import { useState } from 'react'
+import './App.css'
+import logo from './logo.svg'
 
 function App() {
   // State to hold messages and current input
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-
-  const clearChat = () => {
-    setMessages([])
-  }
+  const clearChat = () => setMessages([])
 
   const sendMessage = async () => {
     if (!input.trim()) return
-
     // Add user message to state
     const userMessage = { role: 'user', content: input }
     const updatedMessages = [...messages, userMessage]
@@ -34,35 +32,38 @@ function App() {
   }
 
   return (
-  <div>
-    <h1>AI Chat</h1>
+    <div className="chat-container">
+      <div className="chat-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <img src={logo} alt="logo" width={40} />
+          <span>Cal</span>
+        </div>
+        <button className="btn-clear" onClick={clearChat}>Clear</button>
+      </div>
 
-    <div>
+      <div className="messages">
         {messages.map((msg, index) => (
-          <p key={index}>
-            <strong>{msg.role === 'user' ? 'you' : 'lamma'}:</strong> {msg.content}
-          </p>
+          <div key={index} className={`message ${msg.role}`}>
+            {msg.content}
+          </div>
         ))}
+        {loading && <p className="thinking">Cal is thinking...</p>}
+      </div>
+
+      <div className="input-area">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+          placeholder="Message Cal..."
+        />
+        <button className="btn-send" onClick={sendMessage} disabled={loading}>
+          {loading ? '...' : 'Send'}
+        </button>
+      </div>
     </div>
-
-    {loading && <p>Thinking...</p>}
-
-    <input 
-      type="text" 
-      value={input} 
-      onChange={(e) => setInput(e.target.value)} 
-      onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-      placeholder="Type a message..." 
-    />
-
-    <button onClick={sendMessage} disabled={loading}>
-        {loading ? 'Thinking...' : 'Send'}
-    </button>
-    <button onClick={clearChat}>
-        Clear Chat
-    </button>
-  </div>
-)
+  )
 }
 
 export default App;
