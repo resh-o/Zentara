@@ -9,7 +9,7 @@ function App() {
   const [loading, setLoading] = useState(false)
   const clearChat = () => setMessages([])
   const bottomRef = useRef(null)
-  
+
   // Scroll to bottom whenever messages change
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -60,9 +60,18 @@ function App() {
             {msg.content}
           </div>
         ))}
-        {loading && <p className="thinking">Zentara is thinking...</p>}
+        
+        {loading && (
+          <div className="message assistant">
+            <span className="thinking-dots">
+              <span>•</span>
+              <span>•</span>
+              <span>•</span>
+            </span>
+          </div>
+        )}
+        <div ref={bottomRef} /> 
       </div>
-
       <div className="input-area">
         <input
           type="text"
