@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './App.css'
 import logo from './logo.svg'
 
@@ -8,6 +8,19 @@ function App() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const clearChat = () => setMessages([])
+  const bottomRef = useRef(null)
+  
+  // Scroll to bottom whenever messages change
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  // Fetch chat history from backend on component mount
+  useEffect(() => {
+    fetch('http://localhost:3001/history')
+      .then(res => res.json())
+      .then(data => setMessages(data.messages))
+  }, [])
 
   const sendMessage = async () => {
     if (!input.trim()) return
