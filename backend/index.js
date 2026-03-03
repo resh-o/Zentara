@@ -1,5 +1,6 @@
 const express = require('express')
 const cors = require('cors')
+const db = require('./database')
 
 const app = express()
 
@@ -10,6 +11,11 @@ app.post('/chat', async (req, res) => {
   try {
     // Extract messages from request body
     const { messages } = req.body
+    // Get the last message from the user
+    const userMessage = messages[messages.length - 1]
+    // Insert user's message into database
+    db.prepare('INSERT INTO messages (role, content) VALUES (?, ?)')
+      .run(userMessage.role, userMessage.content)
     console.log('Received messages:', messages)
     // Add system prompt to guide the AI's behavior
     const systemMessage = {
@@ -29,8 +35,13 @@ app.post('/chat', async (req, res) => {
     })
     // Parse response from Ollama and send back to frontend
     const data = await response.json()
+    // Extract assistant's reply from Ollama response
+    const reply = data.message.content
+    // Insert assistant's reply into database
+    db.prepare('INSERT INTO messages (role, content) VALUES (?, ?)')
+      .run('assistant', reply)
     console.log('Ollama response:', data)
-    res.json({ reply: data.message.content })
+    res.json({ reply })
     
   } catch (error) { 
     // Handle errors and send error response
