@@ -6,6 +6,10 @@ function App() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
 
+  const clearChat = () => {
+    setMessages([])
+  }
+
   const sendMessage = async () => {
     if (!input.trim()) return
 
@@ -53,7 +57,10 @@ function App() {
 
     <button onClick={sendMessage} disabled={loading}>
         {loading ? 'Thinking...' : 'Send'}
-      </button>
+    </button>
+    <button onClick={clearChat}>
+        Clear Chat
+    </button>
   </div>
 )
 }
