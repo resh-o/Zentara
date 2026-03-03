@@ -36,7 +36,7 @@ function App() {
       <div className="chat-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <img src={logo} alt="logo" width={40} />
-          <span>Cal</span>
+          <span>Zentara</span>
         </div>
         <button className="btn-clear" onClick={clearChat}>Clear</button>
       </div>
@@ -47,7 +47,7 @@ function App() {
             {msg.content}
           </div>
         ))}
-        {loading && <p className="thinking">Cal is thinking...</p>}
+        {loading && <p className="thinking">Zentara is thinking...</p>}
       </div>
 
       <div className="input-area">
@@ -56,7 +56,7 @@ function App() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-          placeholder="Message Cal..."
+          placeholder="Message Zentara..."
         />
         <button className="btn-send" onClick={sendMessage} disabled={loading}>
           {loading ? '...' : 'Send'}

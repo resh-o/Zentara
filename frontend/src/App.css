@@ -5,7 +5,7 @@
 }
 
 body {
-  background-color: #1a1a2e;
+  background-color: #0a1a1f;
   font-family: sans-serif;
   height: 100vh;
   display: flex;
@@ -16,17 +16,19 @@ body {
 .chat-container {
   width: 600px;
   height: 80vh;
-  background: #16213e;
+  background: #0d1f26;
   border-radius: 12px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  border: 1px solid #0d5068;
 }
 
 .chat-header {
   padding: 20px;
-  background: #0f3460;
+  background: #0d5068;
+  border-bottom: 1px solid #1a7a9a;
   color: white;
   font-size: 1.2rem;
   font-weight: bold;
@@ -53,15 +55,16 @@ body {
 }
 
 .message.user {
-  background: #0f3460;
+  background: #2563eb;
   color: white;
   align-self: flex-end;
   border-bottom-right-radius: 2px;
 }
 
 .message.assistant {
-  background: #e94560;
-  color: white;
+  background: #0d1f26;
+  border: 1px solid #0d5068;
+  color: #c8dde6;
   align-self: flex-start;
   border-bottom-left-radius: 2px;
 }
@@ -70,33 +73,38 @@ body {
   padding: 16px;
   display: flex;
   gap: 8px;
-  background: #16213e;
-  border-top: 1px solid #0f3460;
+  background: #0d1526;
+  border-top: 1px solid #1e3a5f;
 }
 
 .input-area input {
   flex: 1;
   padding: 10px 14px;
   border-radius: 8px;
-  border: 1px solid #0f3460;
-  background: #1a1a2e;
+  background: #0a1a1f;
+  border: 1px solid #0d5068;
   color: white;
   font-size: 0.95rem;
   outline: none;
 }
 
 .input-area input:focus {
-  border-color: #e94560;
+  border-color: #3b82f6;
 }
 
 .btn-send {
   padding: 10px 20px;
-  background: #e94560;
+  background: #0d5068;
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   font-weight: bold;
+  transition: background 0.2s;
+}
+
+.btn-send:hover {
+  background: #1a7a9a;
 }
 
 .btn-send:disabled {
@@ -107,20 +115,21 @@ body {
 .btn-clear {
   padding: 6px 12px;
   background: transparent;
-  color: #aaa;
-  border: 1px solid #aaa;
+  color: #64748b;
+  border: 1px solid #1e3a5f;
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.85rem;
+  transition: all 0.2s;
 }
 
 .btn-clear:hover {
-  border-color: #e94560;
-  color: #e94560;
+  border-color: #1a7a9a;
+  color: #1a7a9a;
 }
 
 .thinking {
-  color: #aaa;
+  color: #64748b;
   font-style: italic;
   font-size: 0.85rem;
   padding-left: 4px;
