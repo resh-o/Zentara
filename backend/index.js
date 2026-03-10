@@ -1,23 +1,22 @@
+require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
-const db = require('./database')
+const postgres = require('postgres')
 
 const app = express()
+const sql = postgres(process.env.DATABASE_URL, { ssl: 'require' })
 
 app.use(cors())
 app.use(express.json())
+
 // Endpoint to handle chat messages
 app.post('/chat', async (req, res) => {
   try {
-    // Extract messages from request body
     const { messages } = req.body
-    // Get the last message from the user
     const userMessage = messages[messages.length - 1]
-    // Insert user's message into database
-    db.prepare('INSERT INTO messages (role, content) VALUES (?, ?)')
-      .run(userMessage.role, userMessage.content)
-    console.log('Received messages:', messages)
-    // Add system prompt to guide the AI's behavior
+
+    await sql`INSERT INTO messages (role, content) VALUES (${userMessage.role}, ${userMessage.content})`
+
     const systemMessage = {
       role: 'system',
       content: `You are a helpful assistant called Zentara. You are concise, friendly and slightly witty.
@@ -29,53 +28,57 @@ app.post('/chat', async (req, res) => {
       - NEVER use tables or columns
       - NEVER bold every sentence, only bold key terms`
     }
-    // Send messages to Ollama API
+
     const response = await fetch('http://localhost:11434/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      // Send the entire conversation history to Ollama, including the system prompt
       body: JSON.stringify({
-        model: 'llama3.2:1b',
+        model: 'llama3.2',
         messages: [systemMessage, ...messages],
         stream: false
       })
     })
-    // Parse response from Ollama and send back to frontend
+
     const data = await response.json()
-    // Extract assistant's reply from Ollama response
     const reply = data.message.content
-    // Insert assistant's reply into database
-    db.prepare('INSERT INTO messages (role, content) VALUES (?, ?)')
-      .run('assistant', reply)
-    console.log('Ollama response:', data)
+
+    await sql`INSERT INTO messages (role, content) VALUES ('assistant', ${reply})`
+
     res.json({ reply })
-    
-  } catch (error) { 
-    // Handle errors and send error response
-    console.error('Error:', error.message)
-    res.status(500).json({ error: error.message })
+
+  } catch (err) {
+    console.error('Error:', err.message)
+    res.status(500).json({ error: err.message })
   }
 })
-
-// Endpoint to retrieve chat history
-app.get('/history', (req, res) => {
-  const messages = db.prepare('SELECT role, content FROM messages ORDER BY created_at ASC').all()
-  res.json({ messages })
+// Endpoint to fetch chat history
+app.get('/history', async (req, res) => {
+  try {
+    const messages = await sql`SELECT role, content FROM messages ORDER BY created_at ASC`
+    res.json({ messages })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
 })
-
-// Endpoint to clear chat history and delete all messages from the database
-app.delete('/history', (req, res) => {
-  db.prepare('DELETE FROM messages').run()
-  res.json({ success: true })
+// Endpoint to clear chat history
+app.delete('/history', async (req, res) => {
+  try {
+    await sql`DELETE FROM messages`
+    res.json({ success: true })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
 })
-
-// Endpoint to edit a specific message in the database
-app.post('/messages', (req, res) => {
-  const { role, content } = req.body
-  db.prepare('INSERT INTO messages (role, content) VALUES (?, ?)').run(role, content)
-  res.json({ success: true })
+// Endpoint to add a message (used for edits)
+app.post('/messages', async (req, res) => {
+  try {
+    const { role, content } = req.body
+    await sql`INSERT INTO messages (role, content) VALUES (${role}, ${content})`
+    res.json({ success: true })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
 })
-
 // Start the server
 app.listen(3001, () => {
     console.log('Server is running on port 3001')

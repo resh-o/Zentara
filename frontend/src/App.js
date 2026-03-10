@@ -36,7 +36,7 @@ function App() {
 
     await fetch('http://localhost:3001/history', { method: 'DELETE' })
 
-    for (const msg of newMessages) {
+    for (const msg of updatedMessages) {
       await fetch('http://localhost:3001/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -66,7 +66,10 @@ function App() {
   useEffect(() => {
     fetch('http://localhost:3001/history')
       .then(res => res.json())
-      .then(data => setMessages(data.messages))
+      .then(data => {
+        if (data.messages) setMessages(data.messages)
+      })
+      .catch(err => console.error('History fetch failed:', err))
   }, [])
 
   const sendMessage = async () => {
