@@ -12,10 +12,10 @@ app.use(express.json())
 // Endpoint to handle chat messages
 app.post('/chat', async (req, res) => {
   try {
-    const { messages } = req.body
-    const userMessage = messages[messages.length - 1]
+    const { messages, conversationId } = req.body
 
-    await sql`INSERT INTO messages (role, content) VALUES (${userMessage.role}, ${userMessage.content})`
+    const userMessage = messages[messages.length - 1]
+    await sql`INSERT INTO messages (role, content, conversation_id) VALUES (${userMessage.role}, ${userMessage.content}, ${conversationId})`
 
     const systemMessage = {
       role: 'system',
@@ -42,7 +42,7 @@ app.post('/chat', async (req, res) => {
     const data = await response.json()
     const reply = data.message.content
 
-    await sql`INSERT INTO messages (role, content) VALUES ('assistant', ${reply})`
+    await sql`INSERT INTO messages (role, content, conversation_id) VALUES ('assistant', ${reply}, ${conversationId})`
 
     res.json({ reply })
 
@@ -52,18 +52,23 @@ app.post('/chat', async (req, res) => {
   }
 })
 // Endpoint to fetch chat history
-app.get('/history', async (req, res) => {
+app.get('/history/:conversationId', async (req, res) => {
   try {
-    const messages = await sql`SELECT role, content FROM messages ORDER BY created_at ASC`
+    const { conversationId } = req.params
+    const messages = await sql`
+      SELECT role, content FROM messages 
+      WHERE conversation_id = ${conversationId} 
+      ORDER BY created_at ASC`
     res.json({ messages })
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
 })
 // Endpoint to clear chat history
-app.delete('/history', async (req, res) => {
+app.delete('/history/:conversationId', async (req, res) => {
   try {
-    await sql`DELETE FROM messages`
+    const { conversationId } = req.params
+    await sql`DELETE FROM messages WHERE conversation_id = ${conversationId}`
     res.json({ success: true })
   } catch (err) {
     res.status(500).json({ error: err.message })
@@ -72,8 +77,37 @@ app.delete('/history', async (req, res) => {
 // Endpoint to add a message (used for edits)
 app.post('/messages', async (req, res) => {
   try {
-    const { role, content } = req.body
-    await sql`INSERT INTO messages (role, content) VALUES (${role}, ${content})`
+    const { role, content, conversationId } = req.body
+    await sql`INSERT INTO messages (role, content, conversation_id) VALUES (${role}, ${content}, ${conversationId})`
+    res.json({ success: true })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+// Get all conversations
+app.get('/conversations', async (req, res) => {
+  try {
+    const result = await sql`SELECT * FROM conversations ORDER BY created_at DESC`
+    res.json({ conversations: result })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+// Create a new conversation
+app.post('/conversations', async (req, res) => {
+  try {
+    const { title } = req.body
+    const result = await sql`INSERT INTO conversations (title) VALUES (${title}) RETURNING *`
+    res.json({ conversation: result[0] })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+// Delete a conversation
+app.delete('/conversations/:id', async (req, res) => {
+  try {
+    const { id } = req.params
+    await sql`DELETE FROM conversations WHERE id = ${id}`
     res.json({ success: true })
   } catch (err) {
     res.status(500).json({ error: err.message })
