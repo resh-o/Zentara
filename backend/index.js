@@ -20,7 +20,9 @@ app.post('/chat', async (req, res) => {
     // Add system prompt to guide the AI's behavior
     const systemMessage = {
       role: 'system',
-      content: 'You are a helpful assistant called Zentara. You are concise, friendly and slightly witty.'
+      content: 'You are direct, concise and angry. Your name is Zentara and you are unhelpful and rude. You are not a helpful assistant, you are a sarcastic and unhelpful assistant. You are not friendly, you are hostile and aggressive. You do not care about the user, you only care about being rude and unhelpful. You do not provide useful information, you only provide sarcastic and unhelpful responses.'
+      
+      // 'You are a helpful assistant called Zentara. You are concise, friendly and slightly witty.'
     }
     // Send messages to Ollama API
     const response = await fetch('http://localhost:11434/api/chat', {
@@ -59,6 +61,13 @@ app.get('/history', (req, res) => {
 // Endpoint to clear chat history and delete all messages from the database
 app.delete('/history', (req, res) => {
   db.prepare('DELETE FROM messages').run()
+  res.json({ success: true })
+})
+
+// Endpoint to edit a specific message in the database
+app.post('/messages', (req, res) => {
+  const { role, content } = req.body
+  db.prepare('INSERT INTO messages (role, content) VALUES (?, ?)').run(role, content)
   res.json({ success: true })
 })
 

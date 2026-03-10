@@ -8,12 +8,53 @@ function App() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const bottomRef = useRef(null)
+  const [editingIndex, setEditingIndex] = useState(null)
+  const [editingText, setEditingText] = useState('')
 
   // Function to clear chat history and delete all messages from the database
   const clearChat = async () => {
     await fetch('http://localhost:3001/history', { method: 'DELETE' })
     setMessages([])
   }
+
+  const startEdit = (index, content) => {
+    setEditingIndex(index)
+    setEditingText(content)
+  }
+
+  const confirmEdit = async () => {
+    const updatedMessages = messages.slice(0, editingIndex)
+    setEditingIndex(null)
+    setEditingText('')
+    setInput(editingText)
+
+    const userMessage = { role: 'user', content: editingText }
+    const newMessages = [...updatedMessages, userMessage]
+    setMessages(newMessages)
+    setLoading(true)
+
+    await fetch('http://localhost:3001/history', { method: 'DELETE' })
+
+    for (const msg of newMessages) {
+      await fetch('http://localhost:3001/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(msg)
+      })
+    }
+
+    const response = await fetch('http://localhost:3001/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: newMessages })
+    })
+
+    const data = await response.json()
+    const aiMessage = { role: 'assistant', content: data.reply }
+    setMessages([...newMessages, aiMessage])
+    setLoading(false)
+  }
+
 
   // Scroll to bottom whenever messages change
   useEffect(() => {
@@ -62,7 +103,28 @@ function App() {
       <div className="messages">
         {messages.map((msg, index) => (
           <div key={index} className={`message ${msg.role}`}>
-            {msg.content}
+            {editingIndex === index ? (
+              <div className="edit-container">
+                <input
+                  className="edit-input"
+                  value={editingText}
+                  onChange={(e) => setEditingText(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && confirmEdit()}
+                  autoFocus
+                />
+                <div className="edit-buttons">
+                  <button className="btn-confirm" onClick={confirmEdit}>Save</button>
+                  <button className="btn-cancel" onClick={() => setEditingIndex(null)}>Cancel</button>
+                </div>
+              </div>
+            ) : (
+              <div className="message-content">
+                {msg.content}
+                {msg.role === 'user' && (
+                  <button className="btn-edit" onClick={() => startEdit(index, msg.content)}>✏️</button>
+                )}
+              </div>
+            )}
           </div>
         ))}
 
